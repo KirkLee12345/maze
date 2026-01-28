@@ -1,16 +1,44 @@
-# 这是一个示例 Python 脚本。
-
-# 按 Shift+F10 执行或将其替换为您的代码。
-# 按 双击 Shift 在所有地方搜索类、文件、工具窗口、操作和设置。
+import pygame
 
 
-def print_hi(name):
-    # 在下面的代码行中使用断点来调试脚本。
-    print(f'Hi, {name}')  # 按 Ctrl+F8 切换断点。
 
 
-# 按装订区域中的绿色按钮以运行脚本。
+class settings:
+    def __init__(self):
+        self.screen_width = 1200
+        self.screen_height = 800
+        self.bg_color = (255, 255, 255)
+        self.fps = 60
+
+
+def main():
+    pygame.init()
+    setting = settings()
+
+    clock = pygame.time.Clock()
+
+
+
+    screen = pygame.display.set_mode((setting.screen_width, setting.screen_height))
+    pygame.display.set_caption("迷宫")
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+
+        screen.fill(setting.bg_color)
+
+
+
+        clock.tick(setting.fps)
+        pygame.display.set_caption("迷宫 " + f"{clock.get_fps():.1f}")
+        pygame.display.update()
+
+
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# 访问 https://www.jetbrains.com/help/pycharm/ 获取 PyCharm 帮助
+    main()
