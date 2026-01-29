@@ -11,12 +11,19 @@ class Settings:
         self.screen_width = 1200  # 屏幕宽度（必须是方格大小的整数倍）
         self.screen_height = 800  # 屏幕高度（必须是方格大小的整数倍）
         self.line_width = 4  # 墙壁线宽度
+        self.debug_width = 200  # debug区域宽度
         self.bg_color = (255, 255, 255)  # 背景颜色（元组RGB值）
         self.line_color = (0, 0, 0)  # 墙壁颜色（元组RGB值）
-        self.fps = 60  # 帧率
-        self.random_seed = 0  # 随机数种子（设置为0则每次运行都生成一个随机数）
+        self.debug_bg_color = (200, 200, 200)  # debug区域背景颜色（元组RGB值）
+        self.debug_text_size = 16  # debug区域文字大小
+        self.debug_text_color = (0, 0, 0)  # debug区域文字颜色（元组RGB值）
+        self.debug_block_text_size = 10  # debug模式下格子编号和坐标文字大小
+        self.debug_block_text_color = (200, 200, 200)  # debug模式下格子编号和坐标文字颜色（元组RGB值）
         self.player_default_color = (120, 0, 120)  # 玩家默认颜色（元组RGB值）
         self.player_default_r = 15  # 玩家默认半径
+        self.fps = 60  # 帧率
+        self.random_seed = 0  # 随机数种子（设置为0则每次运行都生成一个随机数）
+
 
     def save(self, path="setting.json"):
         with open(path, "w") as f:
@@ -35,7 +42,7 @@ class Level:
         self.block_size = setting.block_size
         self.line_color = setting.line_color
         self.bg_color = setting.bg_color
-        self.random_seed = setting.random_seed if setting.random_seed else random.randint(1, 100000000000000000000000000000000)
+        self.random_seed = setting.random_seed if setting.random_seed else random.randint(1, 10000000000000000)
         self.n = int(setting.screen_width / setting.block_size)
         self.m = int(setting.screen_height / setting.block_size)
         self.blocks = []
@@ -119,6 +126,7 @@ class Player:
         self.r = r if r else setting.player_default_r
         self.x = x
         self.y = y
+        self.steps = 0
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
@@ -126,18 +134,66 @@ class Player:
     def move(self, l, direction):
         if direction == "U" and l.blocks[self.x][self.y]["u"]:
             self.y -= 1
+            self.steps += 1
         if direction == "D" and l.blocks[self.x][self.y]["d"]:
             self.y += 1
+            self.steps += 1
         if direction == "L" and l.blocks[self.x][self.y]["l"]:
             self.x -= 1
+            self.steps += 1
         if direction == "R" and l.blocks[self.x][self.y]["r"]:
             self.x += 1
+            self.steps += 1
+
+
+def display_debug(screen, font, block_font, clock, setting, l, p1):
+    texts = []
+    clock.tick(setting.fps)
+    texts.append(f"FPS: {clock.get_fps():.1f}")
+    texts.append("")
+    texts.append(f"seed: {l.random_seed}")
+    texts.append("")
+    texts.append(f"width: {setting.screen_width}  height: {setting.screen_height}")
+    texts.append(f"n: {l.n}  m: {l.m}  total: {l.n*l.m}")
+    texts.append(f"block_size: {l.block_size}")
+    texts.append(f"line_width: {l.line_width}")
+    texts.append(f"line_color: {l.line_color}")
+    texts.append(f"bg_color: {l.bg_color}")
+    texts.append("")
+    texts.append(f"player_default_color: {p1.color}")
+    texts.append(f"player_default_r: {p1.r}")
+    texts.append("")
+    texts.append(f"debug_bg_color: {setting.debug_bg_color}")
+    texts.append(f"debug_text_size: {setting.debug_text_size}")
+    texts.append(f"debug_text_color: {setting.debug_text_color}")
+    texts.append(f"debug_block_text_size: {setting.debug_block_text_size}")
+    texts.append(f"debug_block_text_color: {setting.debug_block_text_color}")
+    texts.append("")
+    texts.append(f"x: {p1.x} y: {p1.y}")
+    texts.append(f"steps: {p1.steps}")
+
+    pygame.draw.rect(screen, setting.debug_bg_color, (setting.screen_width + setting.line_width/2, 0, setting.debug_width, setting.screen_height + setting.line_width))
+    for i, text in enumerate(texts):
+        text_surface = font.render(text, True, setting.debug_text_color)
+        screen.blit(text_surface, (setting.screen_width + setting.line_width, i*setting.debug_text_size))
+
+    for i in range(l.n):
+        for j in range(l.m):
+            text = str(j*l.n+i)
+            text_surface = block_font.render(text, True, setting.debug_block_text_color)
+            screen.blit(text_surface, (setting.block_size*i+setting.line_width, setting.block_size*j+setting.line_width))
+            text = f"({i}, {j})"
+            text_surface = block_font.render(text, True, setting.debug_block_text_color)
+            screen.blit(text_surface, (setting.block_size*i + setting.line_width, setting.block_size*j+setting.line_width + setting.debug_block_text_size))
+
 
 
 
 def main():
     pygame.init()
     setting = Settings()
+    font = pygame.font.SysFont('Arial', setting.debug_text_size)  # 系统字体
+    block_font = pygame.font.SysFont('Arial', setting.debug_block_text_size)
     # setting.save()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((setting.screen_width + setting.line_width/2, setting.screen_height + setting.line_width/2))
@@ -146,6 +202,7 @@ def main():
     # l.save()
     p1 = Player(setting, 0, 0)
     pygame.display.set_caption("迷宫")
+    debug_mode = False
 
     while True:
         for event in pygame.event.get():
@@ -161,12 +218,18 @@ def main():
                     p1.move(l, "L")
                 if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     p1.move(l, "R")
+                if event.key == pygame.K_F3:
+                    debug_mode = not debug_mode
+                    if debug_mode:
+                        screen = pygame.display.set_mode((setting.screen_width + setting.line_width / 2 + setting.debug_width, setting.screen_height + setting.line_width / 2))
+                    else:
+                        screen = pygame.display.set_mode((setting.screen_width + setting.line_width / 2, setting.screen_height + setting.line_width / 2))
 
         screen.fill(setting.bg_color)
         l.draw(screen)
         p1.draw(screen)
-        clock.tick(setting.fps)
-        pygame.display.set_caption(f"迷宫 FPS：{clock.get_fps():.1f}")
+        if debug_mode:
+            display_debug(screen, font, block_font, clock, setting, l, p1)
         pygame.display.update()
 
 
