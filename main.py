@@ -1,4 +1,5 @@
 import random
+import sys
 import pygame
 import json
 
@@ -150,7 +151,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_w or event.key == pygame.K_UP:
                     p1.move(l, "U")
