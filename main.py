@@ -11,7 +11,7 @@ class Settings:
         self.screen_width = 1200  # 屏幕宽度（必须是方格大小的整数倍）
         self.screen_height = 800  # 屏幕高度（必须是方格大小的整数倍）
         self.line_width = 4  # 墙壁线宽度
-        self.debug_width = 200  # debug区域宽度
+        self.debug_width = 300  # debug区域宽度
         self.bg_color = (255, 255, 255)  # 背景颜色（元组RGB值）
         self.line_color = (0, 0, 0)  # 墙壁颜色（元组RGB值）
         self.debug_bg_color = (200, 200, 200)  # debug区域背景颜色（元组RGB值）
@@ -154,11 +154,12 @@ def display_debug(screen, font, block_font, clock, setting, l, p1):
     texts.append(f"seed: {l.random_seed}")
     texts.append("")
     texts.append(f"width: {setting.screen_width}  height: {setting.screen_height}")
-    texts.append(f"n: {l.n}  m: {l.m}  total: {l.n*l.m}")
-    texts.append(f"block_size: {l.block_size}")
+    texts.append(f"bg_color: {l.bg_color}")
     texts.append(f"line_width: {l.line_width}")
     texts.append(f"line_color: {l.line_color}")
-    texts.append(f"bg_color: {l.bg_color}")
+    texts.append("")
+    texts.append(f"block_size: {l.block_size}")
+    texts.append(f"n: {l.n}  m: {l.m}  total: {l.n*l.m}")
     texts.append("")
     texts.append(f"player_default_color: {p1.color}")
     texts.append(f"player_default_r: {p1.r}")
