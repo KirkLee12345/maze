@@ -14,7 +14,7 @@ class settings:
         self.fps = 60
         self.random_seed = 0  # 设置随机数种子，设置为0则每次运行都生成一个随机数
         self.player_default_color = (120, 0, 120)
-        self.player_default_r = 10
+        self.player_default_r = 15
 
 
 class block:
@@ -110,6 +110,19 @@ class player:
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (self.x*self.setting.block_size+self.setting.block_size/2, self.y*self.setting.block_size+self.setting.block_size/2), self.r)
 
+    def move(self, l, direction):
+        if direction == "U" and l.blocks[self.x][self.y].u:
+            self.y -= 1
+        if direction == "D" and l.blocks[self.x][self.y].d:
+            self.y += 1
+        if direction == "L" and l.blocks[self.x][self.y].l:
+            self.x -= 1
+        if direction == "R" and l.blocks[self.x][self.y].r:
+            self.x += 1
+
+
+
+
 
 
 
@@ -134,6 +147,15 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w or event.key == pygame.K_UP:
+                    p1.move(l, "U")
+                if event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                    p1.move(l, "D")
+                if event.key == pygame.K_a or event.key == pygame.K_LEFT:
+                    p1.move(l, "L")
+                if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
+                    p1.move(l, "R")
 
 
         screen.fill(setting.bg_color)
