@@ -127,7 +127,7 @@ def main():
         l.draw(screen)
 
         clock.tick(setting.fps)
-        pygame.display.set_caption("迷宫 " + f"{clock.get_fps():.1f}")
+        pygame.display.set_caption(f"迷宫 FPS：{clock.get_fps():.1f}")
         pygame.display.update()
 
 
