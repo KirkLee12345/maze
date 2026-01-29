@@ -3,7 +3,7 @@ import pygame
 
 
 
-class settings:
+class Settings:
     def __init__(self):
         self.screen_width = 1200
         self.screen_height = 800
@@ -17,7 +17,7 @@ class settings:
         self.player_default_r = 15
 
 
-class block:
+class Block:
     def __init__(self, u, d, l, r):
         self.u = u
         self.d = d
@@ -25,14 +25,14 @@ class block:
         self.r = r
 
 
-class level:
+class Level:
     def __init__(self, setting):
         self.setting = setting
         self.blocks = []
         for i in range(int(setting.screen_width/setting.block_size)):
             self.blocks.append([])
             for j in range(int(setting.screen_height/setting.block_size)):
-                self.blocks[i].append(block(False, False, False, False))
+                self.blocks[i].append(Block(False, False, False, False))
         self.fa = {}
         self.n = int(self.setting.screen_width / setting.block_size)
         self.m = int(self.setting.screen_height / setting.block_size)
@@ -99,7 +99,7 @@ class level:
                 cnt += 1
 
 
-class player:
+class Player:
     def __init__(self, setting, x, y, color=None, r=None):
         self.setting = setting
         self.color = color if color else setting.player_default_color
@@ -122,24 +122,14 @@ class player:
 
 
 
-
-
-
-
-
 def main():
     pygame.init()
-    setting = settings()
-
+    setting = Settings()
     clock = pygame.time.Clock()
-
-
-
     screen = pygame.display.set_mode((setting.screen_width + setting.line_width/2, setting.screen_height + setting.line_width/2))
-    l = level(setting)
+    l = Level(setting)
     l.generate_maze()
-    p1 = player(setting, 0, 0)
-
+    p1 = Player(setting, 0, 0)
     pygame.display.set_caption("迷宫")
 
     while True:
@@ -157,16 +147,12 @@ def main():
                 if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     p1.move(l, "R")
 
-
         screen.fill(setting.bg_color)
-
         l.draw(screen)
         p1.draw(screen)
-
         clock.tick(setting.fps)
         pygame.display.set_caption(f"迷宫 FPS：{clock.get_fps():.1f}")
         pygame.display.update()
-
 
 
 
