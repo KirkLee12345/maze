@@ -8,9 +8,13 @@ class settings:
         self.screen_width = 1200
         self.screen_height = 800
         self.line_width = 4
+        self.block_size = 50
         self.bg_color = (255, 255, 255)
+        self.line_color = (0, 0, 0)
         self.fps = 60
         self.random_seed = 0  # 设置随机数种子，设置为0则每次运行都生成一个随机数
+        self.player_default_color = (120, 0, 120)
+        self.player_default_r = 10
 
 
 class block:
@@ -25,25 +29,25 @@ class level:
     def __init__(self, setting):
         self.setting = setting
         self.blocks = []
-        for i in range(int(setting.screen_width/50)):
+        for i in range(int(setting.screen_width/setting.block_size)):
             self.blocks.append([])
-            for j in range(int(setting.screen_height/50)):
+            for j in range(int(setting.screen_height/setting.block_size)):
                 self.blocks[i].append(block(False, False, False, False))
         self.fa = {}
-        self.n = int(self.setting.screen_width / 50)
-        self.m = int(self.setting.screen_height / 50)
+        self.n = int(self.setting.screen_width / setting.block_size)
+        self.m = int(self.setting.screen_height / setting.block_size)
 
     def draw(self, screen):
-        for i in range(int(self.setting.screen_width/50+1)):
-            pygame.draw.line(screen, (0, 0, 0), (i*50, 0), (i*50, self.setting.screen_height), self.setting.line_width)
-        for j in range(int(self.setting.screen_height/50+1)):
-            pygame.draw.line(screen, (0, 0, 0), (0, j*50), (self.setting.screen_width, j*50), self.setting.line_width)
+        for i in range(int(self.setting.screen_width/self.setting.block_size+1)):
+            pygame.draw.line(screen, self.setting.line_color, (i*self.setting.block_size, 0), (i*self.setting.block_size, self.setting.screen_height), self.setting.line_width)
+        for j in range(int(self.setting.screen_height/self.setting.block_size+1)):
+            pygame.draw.line(screen, self.setting.line_color, (0, j*self.setting.block_size), (self.setting.screen_width, j*self.setting.block_size), self.setting.line_width)
         for i in range(len(self.blocks)):
             for j in range(len(self.blocks[i])):
                 if self.blocks[i][j].u:
-                    pygame.draw.line(screen, (255, 255, 255), (i*50+self.setting.line_width/2+1, j*50), (i*50+50-self.setting.line_width/2, j*50), self.setting.line_width)
+                    pygame.draw.line(screen, self.setting.bg_color, (i*self.setting.block_size+self.setting.line_width/2+1, j*self.setting.block_size), (i*self.setting.block_size+self.setting.block_size-self.setting.line_width/2, j*self.setting.block_size), self.setting.line_width)
                 if self.blocks[i][j].l:
-                    pygame.draw.line(screen, (255, 255, 255), (i*50, j*50+self.setting.line_width/2+1), (i*50, j*50+50-self.setting.line_width/2), self.setting.line_width)
+                    pygame.draw.line(screen, self.setting.bg_color, (i*self.setting.block_size, j*self.setting.block_size+self.setting.line_width/2+1), (i*self.setting.block_size, j*self.setting.block_size+self.setting.block_size-self.setting.line_width/2), self.setting.line_width)
 
     def connect_block(self, x, y):
         self.fa[self.findfa(x)] = self.findfa(y)
@@ -95,7 +99,16 @@ class level:
                 cnt += 1
 
 
+class player:
+    def __init__(self, setting, x, y, color=None, r=None):
+        self.setting = setting
+        self.color = color if color else setting.player_default_color
+        self.r = r if r else setting.player_default_r
+        self.x = x
+        self.y = y
 
+    def draw(self, screen):
+        pygame.draw.circle(screen, self.color, (self.x*self.setting.block_size+self.setting.block_size/2, self.y*self.setting.block_size+self.setting.block_size/2), self.r)
 
 
 
@@ -112,6 +125,7 @@ def main():
     screen = pygame.display.set_mode((setting.screen_width + setting.line_width/2, setting.screen_height + setting.line_width/2))
     l = level(setting)
     l.generate_maze()
+    p1 = player(setting, 0, 0)
 
     pygame.display.set_caption("迷宫")
 
@@ -125,6 +139,7 @@ def main():
         screen.fill(setting.bg_color)
 
         l.draw(screen)
+        p1.draw(screen)
 
         clock.tick(setting.fps)
         pygame.display.set_caption(f"迷宫 FPS：{clock.get_fps():.1f}")
