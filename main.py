@@ -121,18 +121,6 @@ class Level:
             self.__dict__ = json.load(f)
 
 
-class Flag:
-    def __init__(self, block_size, color, r, x, y):
-        self.block_size = block_size
-        self.color = color
-        self.r = r
-        self.x = x
-        self.y = y
-
-    def draw(self, screen):
-        pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
-
-
 class Player:
     def __init__(self, setting, x, y, color=None, flag_default_color=None, r=None, flag_r=None, flag=False):
         self.block_size = setting.block_size
@@ -148,13 +136,13 @@ class Player:
 
     def draw(self, screen):
         if self.flag:
-            for flag in self.flags:
-                flag.draw(screen)
+            for flagxy in self.flags:
+                pygame.draw.circle(screen, self.flag_color, (flagxy[0] * self.block_size + self.block_size / 2, flagxy[1] * self.block_size + self.block_size / 2), self.flag_r)
         pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
 
     def move(self, l, direction):
         def moved():
-            self.flags.append(Flag(self.block_size, self.flag_color, self.flag_r, self.x, self.y))
+            self.flags.append((self.x, self.y))
             self.steps += 1
         if direction == "U" and l.blocks[self.x][self.y]["u"]:
             moved()
