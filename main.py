@@ -23,6 +23,8 @@ class Settings:
         self.player_default_r = 15  # 玩家默认半径
         self.fps = 60  # 帧率
         self.random_seed = 0  # 随机数种子（设置为0则每次运行都生成一个随机数）
+        self.flag_default_color = (240, 0, 240)  # 标记点默认颜色（元组RGB值）
+        self.flag_r = 10  # 标记点半径
 
 
     def save(self, path="setting.json"):
@@ -119,31 +121,53 @@ class Level:
             self.__dict__ = json.load(f)
 
 
-class Player:
-    def __init__(self, setting, x, y, color=None, r=None):
-        self.block_size = setting.block_size
-        self.color = color if color else setting.player_default_color
-        self.r = r if r else setting.player_default_r
+class Flag:
+    def __init__(self, block_size, color, r, x, y):
+        self.block_size = block_size
+        self.color = color
+        self.r = r
         self.x = x
         self.y = y
-        self.steps = 0
 
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
 
+
+class Player:
+    def __init__(self, setting, x, y, color=None, flag_color=None, r=None, flag_r=None, flag=False):
+        self.block_size = setting.block_size
+        self.color = color if color else setting.player_default_color
+        self.flag_color = flag_color if flag_color else setting.flag_default_color
+        self.r = r if r else setting.player_default_r
+        self.flag_r = flag_r if flag_r else setting.flag_r
+        self.x = x
+        self.y = y
+        self.steps = 0
+        self.flag = flag
+        self.flags = []
+
+    def draw(self, screen):
+        if self.flag:
+            for flag in self.flags:
+                flag.draw(screen)
+        pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
+
     def move(self, l, direction):
+        def moved():
+            self.flags.append(Flag(self.block_size, self.flag_color, self.flag_r, self.x, self.y))
+            self.steps += 1
         if direction == "U" and l.blocks[self.x][self.y]["u"]:
+            moved()
             self.y -= 1
-            self.steps += 1
         if direction == "D" and l.blocks[self.x][self.y]["d"]:
+            moved()
             self.y += 1
-            self.steps += 1
         if direction == "L" and l.blocks[self.x][self.y]["l"]:
+            moved()
             self.x -= 1
-            self.steps += 1
         if direction == "R" and l.blocks[self.x][self.y]["r"]:
+            moved()
             self.x += 1
-            self.steps += 1
 
 
 def display_debug(screen, font, block_font, clock, setting, l, p1):
@@ -163,6 +187,8 @@ def display_debug(screen, font, block_font, clock, setting, l, p1):
     texts.append("")
     texts.append(f"player_default_color: {p1.color}")
     texts.append(f"player_default_r: {p1.r}")
+    texts.append(f"flag_default_color: {p1.flag_color}")
+    texts.append(f"flag_r: {p1.flag_r}")
     texts.append("")
     texts.append(f"debug_bg_color: {setting.debug_bg_color}")
     texts.append(f"debug_text_size: {setting.debug_text_size}")
@@ -201,7 +227,7 @@ def main():
     l = Level(setting)
     l.generate_maze()
     # l.save()
-    p1 = Player(setting, 0, 0)
+    p1 = Player(setting, 0, 0, flag=True)
     pygame.display.set_caption("迷宫")
     debug_mode = False
 
