@@ -24,7 +24,7 @@ class Settings:
         self.fps = 60  # 帧率
         self.random_seed = 0  # 随机数种子（设置为0则每次运行都生成一个随机数）
         self.flag_default_color = (240, 0, 240)  # 标记点默认颜色（元组RGB值）
-        self.flag_r = 10  # 标记点半径
+        self.flag_default_r = 10  # 标记点默认半径
 
 
     def save(self, path="setting.json"):
@@ -134,12 +134,12 @@ class Flag:
 
 
 class Player:
-    def __init__(self, setting, x, y, color=None, flag_color=None, r=None, flag_r=None, flag=False):
+    def __init__(self, setting, x, y, color=None, flag_default_color=None, r=None, flag_r=None, flag=False):
         self.block_size = setting.block_size
         self.color = color if color else setting.player_default_color
-        self.flag_color = flag_color if flag_color else setting.flag_default_color
+        self.flag_color = flag_default_color if flag_default_color else setting.flag_default_color
         self.r = r if r else setting.player_default_r
-        self.flag_r = flag_r if flag_r else setting.flag_r
+        self.flag_r = flag_r if flag_r else setting.flag_default_r
         self.x = x
         self.y = y
         self.steps = 0
@@ -185,9 +185,13 @@ def display_debug(screen, font, block_font, clock, setting, l, p1):
     texts.append(f"block_size: {l.block_size}")
     texts.append(f"n: {l.n}  m: {l.m}  total: {l.n*l.m}")
     texts.append("")
-    texts.append(f"player_default_color: {p1.color}")
-    texts.append(f"player_default_r: {p1.r}")
-    texts.append(f"flag_default_color: {p1.flag_color}")
+    texts.append(f"player_default_color: {setting.player_default_color}")
+    texts.append(f"player_default_r: {setting.player_default_r}")
+    texts.append(f"player_color: {p1.color}")
+    texts.append(f"player_r: {p1.r}")
+    texts.append(f"flag_default_color: {setting.flag_default_color}")
+    texts.append(f"flag_default_r: {setting.flag_default_r}")
+    texts.append(f"flag_color: {p1.flag_color}")
     texts.append(f"flag_r: {p1.flag_r}")
     texts.append("")
     texts.append(f"debug_bg_color: {setting.debug_bg_color}")
