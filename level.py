@@ -11,9 +11,12 @@ class Level:
         self.block_size = setting.block_size
         self.line_color = setting.line_color
         self.bg_color = setting.bg_color
+        self.finish_block_color = setting.finish_block_color
         self.random_seed = setting.random_seed if setting.random_seed else random.randint(1, 10000000000000000)
         self.n = int(setting.screen_width / setting.block_size)
         self.m = int(setting.screen_height / setting.block_size)
+        self.finish_x = self.n-1
+        self.finish_y = self.m-1
         self.blocks = []
         for i in range(self.n):
             self.blocks.append([])
@@ -31,6 +34,7 @@ class Level:
                     pygame.draw.line(screen, self.bg_color, (i*self.block_size+self.line_width/2+1, j*self.block_size), (i*self.block_size+self.block_size-self.line_width/2, j*self.block_size), self.line_width)
                 if self.blocks[i][j]["l"]:
                     pygame.draw.line(screen, self.bg_color, (i*self.block_size, j*self.block_size+self.line_width/2+1), (i*self.block_size, j*self.block_size+self.block_size-self.line_width/2), self.line_width)
+        pygame.draw.rect(screen, self.finish_block_color, (self.finish_x*self.block_size+self.line_width-1, self.finish_y*self.block_size+self.line_width-1, self.block_size-self.line_width, self.block_size-self.line_width), 0)
 
     def generate_maze(self):
         fa = {}
