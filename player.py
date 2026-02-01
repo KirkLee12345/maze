@@ -18,8 +18,8 @@ class Player:
     def draw(self, screen):
         if self.flag:
             for flagxy in self.flags:
-                pygame.draw.circle(screen, self.flag_color, (flagxy[0] * self.block_size + self.block_size / 2, flagxy[1] * self.block_size + self.block_size / 2), self.flag_r)
-        pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2, self.y*self.block_size+self.block_size/2), self.r)
+                pygame.draw.circle(screen, self.flag_color, (flagxy[0] * self.block_size + self.block_size / 2 +1, flagxy[1] * self.block_size + self.block_size / 2 +1), self.flag_r)
+        pygame.draw.circle(screen, self.color, (self.x*self.block_size+self.block_size/2+1, self.y*self.block_size+self.block_size/2+1), self.r)
 
     def move(self, l, direction):
         def moved():
