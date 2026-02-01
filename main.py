@@ -3,7 +3,9 @@ import pygame
 from setting import Settings
 from level import Level
 from player import Player
+from inputbox import InputBox
 import time
+import socket
 
 
 
@@ -57,12 +59,18 @@ def display_debug(screen, font, block_font, clock, setting, l, p1, start_time):
             screen.blit(text_surface, (setting.block_size*i + setting.line_width, setting.block_size*j+setting.line_width + setting.debug_block_text_size))
 
 
-def display_timer(screen, font, setting, start_time, end_time, finished):
+def display_timer(screen, font, setting, start_time, end_time, finished, is_multiplayer, not_send_score, other_player_time, is_get_score):
     elapsed_time = end_time - start_time
     tmin = int(elapsed_time // 60)
     tsec = int(elapsed_time % 60)
     msec = int(elapsed_time * 1000 % 1000)
-    text = f"{tmin:02d}:{tsec:02d}:{msec:03d}"
+    time_text = f"{tmin:02d}:{tsec:02d}:{msec:03d}"
+    text = time_text
+    if finished and is_multiplayer:
+        if not is_get_score:
+            text = "You: " + time_text + " Waiting for other player to finish..."
+        else:
+            text = "You: " + time_text + " Other player: " + other_player_time
     k = max((5000-(elapsed_time * 1000))/5000, 0)
     if k == 0 and not finished:
         return text
@@ -71,7 +79,7 @@ def display_timer(screen, font, setting, start_time, end_time, finished):
     text_rect = text_surface.get_rect()
     text_rect.center = screen.get_rect().center
     screen.blit(text_surface, text_rect)
-    return text
+    return time_text
 
 
 
@@ -81,6 +89,7 @@ def main():
     font = pygame.font.SysFont('Arial', setting.debug_text_size)  # 系统字体
     block_font = pygame.font.SysFont('Arial', setting.debug_block_text_size)
     timer_font = pygame.font.SysFont('Arial', int(setting.screen_width / 20))
+    tip_font = pygame.font.SysFont('Arial', int(setting.screen_width / 40))
     # setting.save()
     clock = pygame.time.Clock()
     l = Level(setting)
@@ -93,27 +102,90 @@ def main():
 
     screen = pygame.display.set_mode((setting.screen_width + setting.line_width / 2, setting.screen_height + setting.line_width / 2))
 
-    text_surface = timer_font.render("Press Enter to generate maze and start timer.", True, setting.timer_text_color)
+    text_surface = timer_font.render("Press Enter to singleplay.", True, setting.timer_text_color)
+    text_surface2 = timer_font.render("Typing user name and room number to multiplayer.", True, setting.timer_text_color)
     text_rect = text_surface.get_rect()
+    text_rect2 = text_surface2.get_rect()
     text_rect.center = screen.get_rect().center
+    text_rect2.center = screen.get_rect().center
+    text_rect2.y += int(setting.screen_width / 20)+2
+
+    text_tip_1 = tip_font.render("user name: ", True, setting.timer_text_color)
+    text_tip_2 = tip_font.render("room number: ", True, setting.timer_text_color)
+
+    inputbox = InputBox(pygame.Rect(setting.screen_width/2-50, setting.screen_height/2+135, 140, 32))
+    inputbox2 = InputBox(pygame.Rect(setting.screen_width/2-50, setting.screen_height/2+100, 140, 32))
 
     _ = False
+    is_multiplayer = False
+    s = socket.socket()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+            if event.type == pygame.KEYDOWN and (event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER):
+                if inputbox.text and inputbox2.text:
+                    is_multiplayer = True
+                    room_number = inputbox.text
+                    user_name = inputbox2.text
+                    text_surface = timer_font.render("Connecting to server and getting data from server...", True, setting.timer_text_color)
+                    text_rect = text_surface.get_rect()
+                    text_rect.center = screen.get_rect().center
+                    screen.fill(setting.bg_color)
+                    screen.blit(text_surface, text_rect)
+                    pygame.display.update()
+                    s.connect((setting.server_ip, setting.server_port))
+                    s.send(("***###*#*###***" + room_number + "***###*#*###***" + user_name).encode())
+                    text_surface = timer_font.render("Waiting another player...", True, setting.timer_text_color)
+                    text_rect = text_surface.get_rect()
+                    text_rect.center = screen.get_rect().center
+                    screen.fill(setting.bg_color)
+                    screen.blit(text_surface, text_rect)
+                    pygame.display.update()
+                    while True:
+                        data = s.recv(65536).decode("utf-8")
+                        if data:
+                            l.load_from_dict_string(data)
+                            break
                 _ = True
                 break
+            inputbox.dealEvent(event)
+            inputbox2.dealEvent(event)
         if _:
             break
         screen.fill(setting.bg_color)
         screen.blit(text_surface, text_rect)
+        screen.blit(text_surface2, text_rect2)
+        screen.blit(text_tip_1, (setting.screen_width/2-220, setting.screen_height/2+130, 140, 32))
+        screen.blit(text_tip_2, (setting.screen_width/2-220, setting.screen_height/2+95, 140, 32))
+        inputbox.draw(screen)
+        inputbox2.draw(screen)
         pygame.display.update()
+
+    down_time = time.time()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        elapsed_time = time.time() - down_time
+        display_time = max(0, int(4-elapsed_time))
+        text_surface = timer_font.render(str(display_time), True, setting.timer_text_color)
+        text_rect = text_surface.get_rect()
+        text_rect.center = screen.get_rect().center
+        screen.fill(setting.bg_color)
+        screen.blit(text_surface, text_rect)
+        pygame.display.update()
+        if display_time == 0:
+            break
 
     start_time = time.time()
 
+    not_send_score = True
+    is_get_score = False
+    other_player_time = "00:00:000"
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -141,13 +213,20 @@ def main():
             end_time = time.time()
         if p1.x == l.n-1 and p1.y == l.m-1:
             finished = True
-        timer_text = display_timer(screen, timer_font, setting, start_time, end_time, finished)
+        timer_text = display_timer(screen, timer_font, setting, start_time, end_time, finished, is_multiplayer, not_send_score, other_player_time, is_get_score)
         p1.draw(screen)
         if debug_mode:
             display_debug(screen, font, block_font, clock, setting, l, p1, start_time)
+        if finished and is_multiplayer and not_send_score:
+            not_send_score = False
+            s.send(timer_text.encode())
         pygame.display.set_caption("迷宫 " + timer_text)
         pygame.display.update()
 
+        if finished and is_multiplayer and not not_send_score and not is_get_score:
+            other_player_time = s.recv(65536).decode("utf-8")
+            is_get_score = True
+            s.close()
 
 
 if __name__ == '__main__':

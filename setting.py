@@ -24,6 +24,8 @@ class Settings:
         self.random_seed = 0  # 随机数种子（设置为0则每次运行都生成一个随机数）
         self.flag_default_color = (240, 0, 240)  # 标记点默认颜色（元组RGB值）
         self.flag_default_r = 10  # 标记点默认半径
+        self.server_ip = "127.0.0.1"  # 服务器IP
+        self.server_port = 26201  # 服务器端口
 
     def save(self, path="setting.json"):
         with open(path, "w") as f:

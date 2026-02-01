@@ -84,10 +84,16 @@ class Level:
                 connect_block(t[0], t[1])
                 cnt += 1
 
-    def save(self, path="maze.json"):
+    def save_to_file(self, path="maze.json"):
         with open(path, "w") as f:
             json.dump(self.__dict__, f)
 
-    def load(self, path="maze.json"):
+    def load_from_file(self, path="maze.json"):
         with open(path, "r") as f:
             self.__dict__ = json.load(f)
+
+    def to_dict_string(self):
+        return json.dumps(self.__dict__)
+
+    def load_from_dict_string(self, string):
+        self.__dict__ = json.loads(string)
